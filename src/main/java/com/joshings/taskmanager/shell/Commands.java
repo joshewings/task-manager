@@ -20,7 +20,8 @@ public class Commands {
 
     @ShellMethod("Add a process.")
     public String addProcess(
-            @ShellOption String prio
+            @ShellOption String prio,
+            @ShellOption(optOut = true) String creationMode
     ) {
         Priority priority;
         try {
@@ -30,7 +31,9 @@ public class Commands {
         }
 
         try {
-            Process process = taskManager.addProcess(priority);
+            Process process = taskManager.addProcess(
+                    priority,
+                    creationMode.equals("__NONE__") ? TaskManager.CreationMode.Default : TaskManager.CreationMode.fromString(creationMode));
             return "Created process with ID " + process.getProcessId();
         } catch (RuntimeException e) {
             return e.getMessage();
@@ -51,10 +54,35 @@ public class Commands {
         }
     }
 
-    @ShellMethod("Get processes.")
-    public String getProcesses() {
+    @ShellMethod("Kill processes with the given priority.")
+    public String killGroup(
+            @ShellOption String prio
+    ) {
+        Priority priority;
+        try {
+            priority = Priority.fromString(prio);
+        } catch (Exception e) {
+            return e.getMessage();
+        }
 
-        List<Process> processList = taskManager.getProcesses();
+        taskManager.killGroup(priority);
+        return "Killed process with priority " + priority.getPriorityName();
+    }
+
+    @ShellMethod("Kill all processes.")
+    public String killAll() {
+
+        taskManager.killAll();
+        return "Killed all processes";
+    }
+
+    @ShellMethod("Get processes.")
+    public String getProcesses(
+            @ShellOption(optOut = true) String sortMode
+    ) {
+
+        List<Process> processList = taskManager.getProcesses(
+                sortMode.equals("__NONE__") ? TaskManager.SortMode.Timestamp : TaskManager.SortMode.fromString(sortMode));
 
         return processList.stream().map(Process::toString).collect(Collectors.joining("\n"));
     }
