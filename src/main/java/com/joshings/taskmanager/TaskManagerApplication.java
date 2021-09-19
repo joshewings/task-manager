@@ -1,4 +1,4 @@
-package com.jacu.taskmanager;
+package com.joshings.taskmanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
