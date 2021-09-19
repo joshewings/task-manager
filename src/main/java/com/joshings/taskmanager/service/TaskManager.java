@@ -1,14 +1,16 @@
-package com.joshings.taskmanager.model;
+package com.joshings.taskmanager.service;
 
+import com.joshings.taskmanager.model.Priority;
+import com.joshings.taskmanager.model.Process;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Component
+@Service
 @Scope("singleton")
 public class TaskManager {
 
@@ -18,13 +20,13 @@ public class TaskManager {
     private Map<Integer, Process> processMap;
 
     @Autowired
-    public TaskManager(@Value("com.joshings.taskmanager.maxProcesses") Integer maxProcesses) {
+    public TaskManager(@Value("${com.joshings.taskmanager.maxProcesses}") Integer maxProcesses) {
         this.maxProcesses = maxProcesses;
         this.processMap = new HashMap<>();
         this.nextProcessId = new AtomicInteger();
     }
 
-    public List<Process> getTasks() {
+    public List<Process> getProcesses() {
         return new ArrayList<>(processMap.values());
     }
 
