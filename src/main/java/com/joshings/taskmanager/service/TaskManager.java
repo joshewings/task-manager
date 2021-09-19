@@ -98,32 +98,30 @@ public class TaskManager {
 
     public Process addProcess(Priority priority, CreationMode creationMode) throws RuntimeException {
 
-        if (maxProcesses.intValue() <= processMap.size()) {
+        if (maxProcesses <= processMap.size()) {
 
             switch (creationMode) {
                 case Default:
                     throw new RuntimeException(
-                            new StringBuilder("Could not add a new process.\n")
-                                    .append("The configured maximum number of processes (")
-                                    .append(maxProcesses)
-                                    .append(") has been reached")
-                                    .toString()
+                            "Could not add a new process.\n" +
+                                    "The configured maximum number of processes (" +
+                                    maxProcesses +
+                                    ") has been reached"
                     );
                 case Fifo:
-                    killProcess(getOldestProcess().get());
+                    killProcess(getOldestProcess().get().getProcessId());
                     break;
                 case Prio:
                     if (getLowestPriorityProcess().get().getPriority().getPriorityValue() < priority.getPriorityValue()) {
-                        killProcess(getLowestPriorityProcess().get());
+                        killProcess(getLowestPriorityProcess().get().getProcessId());
                     } else {
                         throw new RuntimeException(
-                                new StringBuilder("Could not add a new process.\n")
-                                        .append("The configured maximum number of processes (")
-                                        .append(maxProcesses)
-                                        .append(") has been reached, ")
-                                        .append("and there are no running processes with priority lower than ")
-                                        .append(priority.getPriorityValue())
-                                        .toString()
+                                "Could not add a new process.\n" +
+                                        "The configured maximum number of processes (" +
+                                        maxProcesses +
+                                        ") has been reached, " +
+                                        "and there are no running processes with priority lower than " +
+                                        priority.getPriorityName()
                         );
                     }
             }
@@ -143,19 +141,21 @@ public class TaskManager {
         return Optional.of(process);
     }
 
-    public void killProcess(Process process) {
-        processMap.remove(process.getProcessId());
+    public void killProcess(Integer processId) {
+        processMap.remove(processId);
     }
 
     public void killGroup(Priority priority) {
-        processMap.values().stream()
+        List<Integer> idsOfProcessesToKill = processMap.values().stream()
                 .filter(prc -> prc.getPriority().equals(priority))
-                .forEach(this::killProcess);
+                .map(Process::getProcessId)
+                .collect(Collectors.toList());
+
+        for (Integer pid:idsOfProcessesToKill) killProcess(pid);
     }
 
     public void killAll() {
-        processMap.values()
-                .forEach(this::killProcess);
+        processMap.clear();
     }
 
     private Optional<Process> getOldestProcess() {

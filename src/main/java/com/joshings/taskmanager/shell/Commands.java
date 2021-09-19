@@ -20,8 +20,8 @@ public class Commands {
 
     @ShellMethod("Add a process.")
     public String addProcess(
-            @ShellOption String prio,
-            @ShellOption(optOut = true) String creationMode
+            @ShellOption(defaultValue = "low") String prio,
+            @ShellOption(defaultValue = "dflt") String creationMode
     ) {
         Priority priority;
         try {
@@ -78,7 +78,7 @@ public class Commands {
 
     @ShellMethod("Get processes.")
     public String getProcesses(
-            @ShellOption(optOut = true) String sortMode
+            @ShellOption(defaultValue = "timestamp") String sortMode
     ) {
 
         List<Process> processList = taskManager.getProcesses(

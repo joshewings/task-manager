@@ -28,10 +28,10 @@ public final class Process {
     }
 
     public void kill() {
-      taskManager.killProcess(this);
+      taskManager.killProcess(processId);
     }
 
     public String toString() {
-        return String.format("Process %5d - prio %4s - started at %s", processId, priority, startTime.toString());
+        return String.format("Process %5d - prio %6s - started at %s", processId, priority, startTime.toString());
     }
 }
