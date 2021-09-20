@@ -10,7 +10,7 @@ Spring Shell starter crashes my SpringBoot application simply by being added as 
  */
 @Disabled
 @SpringBootTest
-class TaskManagerApplicationTests {
+class TaskManagerServiceApplicationTests {
 
 	@Test
 	void contextLoads() {

@@ -1,4 +1,4 @@
-package com.joshings.taskmanager.model;
+package com.joshings.taskmanager.service.model;
 
 public enum Priority {
     Low(1, "low"),
