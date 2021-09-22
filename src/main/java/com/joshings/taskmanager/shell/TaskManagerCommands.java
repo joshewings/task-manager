@@ -11,17 +11,33 @@ import org.springframework.shell.standard.ShellOption;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Task Manager Commands.
+ */
 @ShellComponent
-public class Commands {
+public class TaskManagerCommands {
 
+    /**
+     * The constant DFLT.  This is used to indicate that the user wants the default behavior.
+     */
     public static final String DFLT = "dflt";
+    /**
+     * The Task manager service.
+     */
     @Autowired
     TaskManagerService taskManagerService;
 
+    /**
+     * Add a new process.
+     *
+     * @param prio    the prio
+     * @param addMode the add mode
+     * @return a simple message
+     */
     @ShellMethod("Add a process.")
     public String addProcess(
             @ShellOption String prio,
-            @ShellOption(defaultValue = DFLT) String addMode
+            @ShellOption(defaultValue = DFLT, help = "(dflt|fifo|prio)") String addMode
     ) {
         Process process;
         try {
@@ -39,6 +55,12 @@ public class Commands {
         return "Created process with ID " + process.getProcessId();
     }
 
+    /**
+     * Kill a single process.
+     *
+     * @param pid the pid
+     * @return a simple message
+     */
     @ShellMethod("Kill a process.")
     public String killProcess(
             @ShellOption Long pid
@@ -52,6 +74,12 @@ public class Commands {
         return "Killed process with id " + pid;
     }
 
+    /**
+     * Kill group of processes.
+     *
+     * @param prio the prio
+     * @return a simple message
+     */
     @ShellMethod("Kill processes with the given priority.")
     public String killGroup(
             @ShellOption String prio
@@ -67,6 +95,11 @@ public class Commands {
         return "Killed process with priority " + priority.getPriorityName();
     }
 
+    /**
+     * Kill all processes.
+     *
+     * @return a simple message
+     */
     @ShellMethod("Kill all processes.")
     public String killAll() {
 
@@ -74,9 +107,15 @@ public class Commands {
         return "Killed all processes";
     }
 
+    /**
+     * Gets processes.
+     *
+     * @param sortMode the sort mode
+     * @return the processes
+     */
     @ShellMethod("Get processes.")
     public String getProcesses(
-            @ShellOption(defaultValue = DFLT) String sortMode
+            @ShellOption(defaultValue = DFLT, help = "(start_time|pid|prio)") String sortMode
     ) {
         List<Process> processList;
         try {

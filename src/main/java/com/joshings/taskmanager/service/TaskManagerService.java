@@ -221,18 +221,7 @@ public class TaskManagerService {
      * @param priority the priority
      */
     public void killGroup(Priority priority) {
-        Iterable<ProcessEntity> processEntityWithPriorityIterable =
-                processRepository.findAllByPriorityOrderById(priority.getPriorityValue());
-
-        List<Long> idsOfProcessesToKill = StreamSupport.stream(
-                processEntityWithPriorityIterable.spliterator(),
-                        false
-                )
-                .map(processEntityConverter::convert)
-                .map(Process::getProcessId)
-                .collect(Collectors.toList());
-
-        processRepository.deleteAllById(idsOfProcessesToKill);
+        processRepository.deleteAllByPriority(priority.getPriorityValue());
     }
 
     /**
