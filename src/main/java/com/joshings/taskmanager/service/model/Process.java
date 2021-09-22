@@ -5,6 +5,9 @@ import lombok.Getter;
 
 import java.sql.Timestamp;
 
+/**
+ * The type Process.
+ */
 public final class Process {
 
     @Getter
@@ -16,12 +19,24 @@ public final class Process {
     @Getter
     private final Timestamp startTime;
 
+    /**
+     * Instantiates a new Process.
+     *
+     * @param processId the process id
+     * @param priority  the priority
+     * @param startTime the start time
+     */
     public Process(Long processId, Priority priority, Timestamp startTime) {
         this.processId = processId;
         this.priority = priority;
         this.startTime = startTime;
     }
 
+    /**
+     * Kill the process.
+     *
+     * @param taskManagerService the task manager service
+     */
     public void kill(TaskManagerService taskManagerService) {
         taskManagerService.killProcess(this.processId);
     }
