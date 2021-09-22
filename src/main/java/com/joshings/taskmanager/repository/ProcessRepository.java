@@ -15,4 +15,11 @@ public interface ProcessRepository extends CrudRepository<ProcessEntity, Long> {
     @Query("select min(p.priority) from ProcessEntity p")
     Optional<Long> getLowestPriority();
 
+    Iterable<ProcessEntity> findAllByPriorityOrderById(Long priority);
+
+    Iterable<ProcessEntity> findAllByOrderById();
+
+    Iterable<ProcessEntity> findAllByOrderByPriority();
+
+    Iterable<ProcessEntity> findAllByOrderByStartTime();
 }

@@ -83,11 +83,24 @@ public class TaskManagerService {
 
     public List<Process> getProcesses(SortMode sortMode) {
 
-        Iterable<ProcessEntity> processEntityIterable = processRepository.findAll();
+        Iterable<ProcessEntity> processEntityIterable;
+
+        switch (sortMode) {
+            case Timestamp:
+                processEntityIterable = processRepository.findAllByOrderByStartTime();
+                break;
+            case Pid:
+                processEntityIterable = processRepository.findAllByOrderById();
+                break;
+            case Prio:
+                processEntityIterable = processRepository.findAllByOrderByPriority();
+                break;
+            default:
+                throw new IllegalArgumentException("Unrecognized sort mode");
+        }
 
         return StreamSupport.stream(processEntityIterable.spliterator(), false)
                 .map(processEntityConverter::convert)
-                .sorted(getComparator(sortMode))
                 .collect(Collectors.toList());
     }
 
@@ -104,21 +117,19 @@ public class TaskManagerService {
         return this.addProcess(priority, AddMode.Default);
     }
 
-    public Optional<Process> getProcess(Long processId) {
-        Optional<ProcessEntity> processEntity = processRepository.findById(processId);
-        return processEntity.map(processEntityConverter::convert);
-    }
-
     public void killProcess(Long processId) {
         processRepository.deleteById(processId);
     }
 
     public void killGroup(Priority priority) {
-        Iterable<ProcessEntity> processEntityIterable = processRepository.findAll();
+        Iterable<ProcessEntity> processEntityWithPriorityIterable =
+                processRepository.findAllByPriorityOrderById(priority.getPriorityValue());
 
-        List<Long> idsOfProcessesToKill = StreamSupport.stream(processEntityIterable.spliterator(), false)
+        List<Long> idsOfProcessesToKill = StreamSupport.stream(
+                processEntityWithPriorityIterable.spliterator(),
+                        false
+                )
                 .map(processEntityConverter::convert)
-                .filter(prc -> prc.getPriority().equals(priority))
                 .map(Process::getProcessId)
                 .collect(Collectors.toList());
 
@@ -127,19 +138,6 @@ public class TaskManagerService {
 
     public void killAll() {
         processRepository.deleteAll();
-    }
-
-    private static Comparator<Process> getComparator(SortMode sortMode) {
-        switch (sortMode) {
-            case Timestamp:
-                return Comparator.comparingLong(prc -> prc.getStartTime().getTime());
-            case Pid:
-                return Comparator.comparingLong(Process::getProcessId);
-            case Prio:
-                return Comparator.comparingLong(prc -> prc.getPriority().getPriorityValue());
-            default:
-                throw new IllegalArgumentException("Unrecognized sort mode");
-        }
     }
 
     private void beforeStartProcess(Priority priority, AddMode addMode) throws InstantiationException {
