@@ -3,7 +3,10 @@ A software component that is designed for handling multiple processes inside an 
 
 ## Running the application
 Just run the Spring Boot app.
-This is a command line application.  Use the "help" command to get a list of available commands.
+
+This is a command line application.
+Use the "help" command to get a list of available commands.
+Run "script ./src/test/resources/commands.txt" to try some example commands
 
 ## Configuration
 The maximum allowed number of running processes can be configured in application.properties.

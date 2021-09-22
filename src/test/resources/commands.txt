@@ -1,0 +1,22 @@
+add-process --prio low
+add-process --prio low
+add-process --prio low
+add-process --prio low
+add-process --prio medium
+add-process --prio high --add-mode prio
+add-process --prio medium --add-mode prio
+add-process --prio low --add-mode prio
+add-process --prio low --add-mode fifo
+get-processes
+get-processes --sort-mode start_time
+get-processes --sort-mode pid
+get-processes --sort-mode prio
+kill-process --pid 5
+get-processes
+kill-group --prio high
+get-processes
+add-process --prio low
+add-process --prio medium
+kill-all
+get-processes
+
