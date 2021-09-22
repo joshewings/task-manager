@@ -2,11 +2,11 @@ package com.joshings.taskmanager.service;
 
 import com.joshings.taskmanager.repository.ProcessRepository;
 import com.joshings.taskmanager.repository.model.ProcessEntity;
+import com.joshings.taskmanager.service.configuration.TaskManagerConfigurationProperties;
 import com.joshings.taskmanager.service.converter.ProcessEntityConverter;
 import com.joshings.taskmanager.service.model.Priority;
 import com.joshings.taskmanager.service.model.Process;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -14,12 +14,35 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+/**
+ * The Task manager (TM) service.
+ * A software component that is designed for handling multiple processes inside an operating system.
+ */
 @Service
 public class TaskManagerService {
 
+    /**
+     * The available modes for adding a process to the TM.
+     */
     public enum AddMode {
+        /**
+         * Default add mode.
+         * The default behaviour is that we can accept new processes till when there is capacity inside the Task
+         * Manager, otherwise we won’t accept any new process.
+         */
         Default("dflt"),
+        /**
+         * Fifo add mode.
+         * Accept all new processes through the addProcess() method, killing and removing from the TM list the oldest
+         * one (First-In, First-Out) when the max size is reached.
+         */
         Fifo("fifo"),
+        /**
+         * Prio add mode.
+         * Every call to the addProcess() method, when the max size is reached, should result into an evaluation: if the
+         * new process passed in the add() call has a higher priority compared to any of the existing one, we remove the
+         * lowest priority that is the oldest, otherwise we skip it.
+         */
         Prio("prio");
 
         private final String modeName;
@@ -28,13 +51,24 @@ public class TaskManagerService {
             this.modeName = modeName;
         }
 
+        /**
+         * Gets mode name.
+         *
+         * @return the mode name
+         */
         public String getModeName() {
             return this.modeName;
         }
 
-        public static AddMode fromString(String priorityName) {
+        /**
+         * Get the Add Mode from its name.
+         *
+         * @param modeName the mode name
+         * @return the add mode
+         */
+        public static AddMode fromString(String modeName) {
             for (AddMode addMode : AddMode.values()) {
-                if (addMode.modeName.equalsIgnoreCase(priorityName)) {
+                if (addMode.modeName.equalsIgnoreCase(modeName)) {
                     return addMode;
                 }
             }
@@ -42,9 +76,21 @@ public class TaskManagerService {
         }
     }
 
+    /**
+     * The available modes for sorting the process list which is retrieved from the TM.
+     */
     public enum SortMode {
-        Timestamp("timestamp"),
+        /**
+         * Sort by start time.
+         */
+        StartTime("start_time"),
+        /**
+         * Sort by process ID.
+         */
         Pid("pid"),
+        /**
+         * Sort by priority.
+         */
         Prio("prio");
 
         private final String modeName;
@@ -53,13 +99,24 @@ public class TaskManagerService {
             this.modeName = modeName;
         }
 
+        /**
+         * Gets mode name.
+         *
+         * @return the mode name
+         */
         public String getModeName() {
             return this.modeName;
         }
 
-        public static SortMode fromString(String priorityName) {
+        /**
+         * Get the mode from its name.
+         *
+         * @param modeName the mode name
+         * @return the sort mode
+         */
+        public static SortMode fromString(String modeName) {
             for (SortMode sortMode : SortMode.values()) {
-                if (sortMode.modeName.equalsIgnoreCase(priorityName)) {
+                if (sortMode.modeName.equalsIgnoreCase(modeName)) {
                     return sortMode;
                 }
             }
@@ -67,26 +124,38 @@ public class TaskManagerService {
         }
     }
 
+    private final TaskManagerConfigurationProperties taskManagerConfigurationProperties;
     private final ProcessRepository processRepository;
     private final ProcessEntityConverter processEntityConverter;
-    private final Integer maxProcesses;
 
+    /**
+     * Instantiates a new Task manager service.
+     *
+     * @param processRepository      the process repository
+     * @param processEntityConverter the process entity converter
+     */
     @Autowired
-    public TaskManagerService(ProcessRepository processRepository,
-                              ProcessEntityConverter processEntityConverter,
-                              @Value("${com.joshings.taskmanager.maxProcesses}") Integer maxProcesses
+    public TaskManagerService(TaskManagerConfigurationProperties taskManagerConfigurationProperties,
+                              ProcessRepository processRepository,
+                              ProcessEntityConverter processEntityConverter
     ) {
-        this.maxProcesses = maxProcesses;
+        this.taskManagerConfigurationProperties = taskManagerConfigurationProperties;
         this.processRepository = processRepository;
         this.processEntityConverter = processEntityConverter;
     }
 
+    /**
+     * Gets processes.
+     *
+     * @param sortMode the sort mode
+     * @return the processes
+     */
     public List<Process> getProcesses(SortMode sortMode) {
 
         Iterable<ProcessEntity> processEntityIterable;
 
         switch (sortMode) {
-            case Timestamp:
+            case StartTime:
                 processEntityIterable = processRepository.findAllByOrderByStartTime();
                 break;
             case Pid:
@@ -104,23 +173,53 @@ public class TaskManagerService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Get a list of processes which is sorted by start time.
+     *
+     * @return the processes
+     */
     public List<Process> getProcesses() {
-        return getProcesses(SortMode.Timestamp);
+        return getProcesses(SortMode.StartTime);
     }
 
+    /**
+     * Add a new process according to the provided add mode.
+     *
+     * @param priority the priority
+     * @param addMode  the add mode
+     * @return the process
+     * @throws InstantiationException the instantiation exception
+     */
     public Process addProcess(Priority priority, AddMode addMode) throws InstantiationException {
         this.beforeStartProcess(priority, addMode);
         return this.startProcess(priority);
     }
 
+    /**
+     * Add a new process accoring to the default mode.
+     *
+     * @param priority the priority
+     * @return the process
+     * @throws InstantiationException the instantiation exception
+     */
     public Process addProcess(Priority priority) throws InstantiationException {
         return this.addProcess(priority, AddMode.Default);
     }
 
+    /**
+     * Kill a specific process.
+     *
+     * @param processId the process id
+     */
     public void killProcess(Long processId) {
         processRepository.deleteById(processId);
     }
 
+    /**
+     * Kill group of processes with the given priority.
+     *
+     * @param priority the priority
+     */
     public void killGroup(Priority priority) {
         Iterable<ProcessEntity> processEntityWithPriorityIterable =
                 processRepository.findAllByPriorityOrderById(priority.getPriorityValue());
@@ -136,6 +235,9 @@ public class TaskManagerService {
         processRepository.deleteAllById(idsOfProcessesToKill);
     }
 
+    /**
+     * Kill all processes.
+     */
     public void killAll() {
         processRepository.deleteAll();
     }
@@ -144,7 +246,7 @@ public class TaskManagerService {
 
         long runningProcessCount = processRepository.count();
 
-        if (runningProcessCount >= this.maxProcesses) {
+        if (runningProcessCount >= taskManagerConfigurationProperties.getMaxProcesses()) {
             switch (addMode) {
                 case Default:
                     throw new InstantiationException("Add mode: " + AddMode.Default + ". " +
@@ -175,7 +277,7 @@ public class TaskManagerService {
 
     private Process startProcess(Priority priority) throws InstantiationException {
 
-        if (processRepository.count() >= this.maxProcesses) {
+        if (processRepository.count() >= taskManagerConfigurationProperties.getMaxProcesses()) {
             throw new InstantiationException("The maximum allowed number of processes is running.");
         }
 
