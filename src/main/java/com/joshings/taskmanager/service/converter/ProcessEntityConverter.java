@@ -11,7 +11,7 @@ public class ProcessEntityConverter {
     public Process convert(ProcessEntity processEntity) {
         return new Process(
                 processEntity.getId(),
-                Priority.fromString(processEntity.getPriority()),
+                Priority.fromLong(processEntity.getPriority()),
                 processEntity.getStartTime()
         );
     }

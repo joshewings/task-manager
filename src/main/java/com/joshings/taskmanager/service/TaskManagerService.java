@@ -182,7 +182,7 @@ public class TaskManagerService {
         }
 
         ProcessEntity newProcessEntity = new ProcessEntity(
-                priority.getPriorityName(),
+                priority.getPriorityValue(),
                 new Timestamp(new Date().getTime())
         );
 
@@ -190,28 +190,14 @@ public class TaskManagerService {
     }
 
     private Optional<Process> getOldestProcess() {
-        Iterable<ProcessEntity> processEntityIterable = processRepository.findAll();
-
-        return StreamSupport.stream(processEntityIterable.spliterator(), false)
-                .map(processEntityConverter::convert)
-                .min(getComparator(SortMode.Timestamp));
+        return processRepository.findFirstByOrderByStartTime().map(processEntityConverter::convert);
     }
 
     private Optional<Process> getOldestProcessWithPriority(Priority priority) {
-        Iterable<ProcessEntity> processEntityIterable = processRepository.findAll();
-
-        return StreamSupport.stream(processEntityIterable.spliterator(), false)
-                .map(processEntityConverter::convert)
-                .filter(prc -> prc.getPriority().equals(priority))
-                .min(getComparator(SortMode.Timestamp));
+        return processRepository.findFirstByPriorityOrderByStartTime(priority.getPriorityValue()).map(processEntityConverter::convert);
     }
 
     private Optional<Priority> getLowestProcessPriority() {
-        Iterable<ProcessEntity> processEntityIterable = processRepository.findAll();
-
-        return StreamSupport.stream(processEntityIterable.spliterator(), false)
-                .map(processEntityConverter::convert)
-                .min(getComparator(SortMode.Prio))
-                .map(Process::getPriority);
+        return processRepository.getLowestPriority().map(Priority::fromLong);
     }
 }

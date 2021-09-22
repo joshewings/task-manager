@@ -2,6 +2,6 @@ DROP TABLE IF EXISTS process;
 
 CREATE TABLE process (
   id INT AUTO_INCREMENT  PRIMARY KEY,
-  priority VARCHAR(250) NOT NULL,
+  priority INT NOT NULL,
   start_time TIMESTAMP NOT NULL
 );

@@ -5,15 +5,15 @@ public enum Priority {
     Medium(2, "medium"),
     High(3, "high");
 
-    private final int priorityValue;
+    private final long priorityValue;
     private final String priorityName;
 
-    Priority(int priorityValue, String priorityName) {
+    Priority(long priorityValue, String priorityName) {
         this.priorityValue = priorityValue;
         this.priorityName = priorityName;
     }
 
-    public int getPriorityValue() {
+    public long getPriorityValue() {
         return priorityValue;
     }
 
@@ -28,5 +28,14 @@ public enum Priority {
             }
         }
         throw new IllegalArgumentException("Unrecognized priority name");
+    }
+
+    public static Priority fromLong(Long priorityValue) {
+        for (Priority priority : Priority.values()) {
+            if (priorityValue.intValue() == priority.getPriorityValue()) {
+                return priority;
+            }
+        }
+        throw new IllegalArgumentException("Unrecognized priority value");
     }
 }
